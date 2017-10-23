@@ -16,7 +16,7 @@ def query_gerrit(gerrit_url: str, project: str, user: str) -> bytes:
         query = ("project:%s+" % (project)) + query
 
     gerrit_url = GERRIT_URL % (gerrit_url, query)
-    response = requests.get(gerrit_url, verify=False)
+    response = requests.get(gerrit_url)
     return json.loads(response.text.lstrip(")]}'"))
 
 def get_reviews(change):
