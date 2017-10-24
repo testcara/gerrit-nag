@@ -7,7 +7,7 @@ import json
 from datetime import datetime
 
 GERRIT_URL = '%schanges/?q=%s&o=DETAILED_LABELS&o=DETAILED_ACCOUNTS'
-QUERY = 'reviewer:%s+status:open+-owner:%s+label:Code-Review=0,user=%s'
+QUERY = 'reviewer:%s+status:open+-owner:%s+-reviewedby:%s'
 
 def query_gerrit(gerrit_url: str, project: str, user: str) -> bytes:
     """Return current outstanding gerrit changes owned by user"""
