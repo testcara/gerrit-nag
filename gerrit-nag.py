@@ -6,17 +6,54 @@ import requests
 import json
 from datetime import datetime
 
-GERRIT_URL = '%schanges/?q=%s&o=DETAILED_LABELS&o=DETAILED_ACCOUNTS'
-QUERY = 'reviewer:%s+status:open+-owner:%s+-reviewedby:%s'
+def prepare_gerrit_query(parser, user):
+    return '+'.join([
+        # Specify the project
+        'project:{project}',
 
-def query_gerrit(gerrit_url: str, project: str, user: str) -> bytes:
+        # Exclude merged or abandoned patches
+        'status:open',
+
+        # Include patches you were invited to review
+        'reviewer:{user}',
+
+        # Don't need to review your own patches
+        '-owner:{user}',
+
+        # Exclude patch sets you already reviewed.
+        # Gerrit considers that a comment counts as a review
+        # but if the owner posts a comment later than yours then
+        # you need to review it again.
+        '-reviewedby:{user}',
+
+        # Exclude patches where Jenkins tests failed
+        # (An alternative here would be to use label:Verified+1
+        # which would exclude patch sets where Jenkins didn't run yet)
+        '-label:Verified-1',
+
+        # Exclude patches where someone already gave a -2
+        '-label:Code-Review-2',
+
+        # Exclude patches where someone already gave a +2
+        # since they're likely to be merged soon regardless
+        '-label:Code-Review2',
+
+    ]).format(project = parser.project, user = user)
+
+def prepare_rest_url(parser, user):
+    return "{gerrit}/changes/?q={query}&{options}".format(
+        gerrit = parser.gerrit,
+        query = prepare_gerrit_query(parser, user),
+        options = 'o=DETAILED_LABELS&o=DETAILED_ACCOUNTS')
+
+def prepare_clickable_url(parser, user):
+    return "{gerrit}/#/q/{query}".format(
+        gerrit = parser.gerrit,
+        query = prepare_gerrit_query(parser, user))
+
+def query_gerrit(parser, user) -> bytes:
     """Return current outstanding gerrit changes owned by user"""
-    query = QUERY % (user, user, user)
-    if project:
-        query = ("project:%s+" % (project)) + query
-
-    gerrit_url = GERRIT_URL % (gerrit_url, query)
-    response = requests.get(gerrit_url)
+    response = requests.get(prepare_rest_url(parser, user))
     return json.loads(response.text.lstrip(")]}'"))
 
 def get_reviews(change):
@@ -50,7 +87,7 @@ def main():
 
     for user in get_user_list(parser.users):
         print("Reviews waiting on %s" % user)
-        changes = query_gerrit(parser.gerrit, parser.project, user)
+        changes = query_gerrit(parser, user)
 
         for change in [c for c in changes if not review_not_needed(c)]:
             user_invite = [invite for invite in get_reviews(change) if invite['username'] == user][0]
