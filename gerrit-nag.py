@@ -79,6 +79,7 @@ def get_opts():
     parser.add_argument('users', type=str, help='List of users to query, comma separated')
     parser.add_argument('--short', action='store_true', help="Short output")
     parser.add_argument('--shorter', action='store_true', help="Even shorter output")
+    parser.add_argument('--include-all', action='store_true', help="Don't exclude patch sets with two +1s or a +2")
     return parser.parse_args()
 
 def get_user_list(users: str) -> List[str]:
@@ -92,8 +93,13 @@ def main():
     waiting_sum = 0
 
     for user in get_user_list(parser.users):
-        changes = query_gerrit(parser, user)
+        all_changes = query_gerrit(parser, user)
+        if parser.include_all:
+            user_changes[user] = all_changes
+        else:
+            user_changes[user] = [c for c in all_changes if not review_not_needed(c)]
 
+    for user,changes in sorted(user_changes.items(), key=lambda t: -len(t[1])):
         waiting_count += 1
         waiting_sum += len(changes)
 
@@ -106,7 +112,7 @@ def main():
         else:
             print("{} reviews waiting on {}".format(len(changes), user))
 
-        for change in [c for c in changes if not review_not_needed(c)]:
+        for change in changes:
             user_invite = [invite for invite in get_reviews(change) if invite['username'] == user][0]
 
             # Not sure why, but sometimes the review has date field present and sometimes there isn't.
