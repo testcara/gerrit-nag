@@ -77,6 +77,8 @@ def get_opts():
     parser.add_argument('gerrit', metavar='URL', type=str, help='Gerrit URL')
     parser.add_argument('project', metavar='PROJECT', help='Gerrit project name')
     parser.add_argument('users', type=str, help='List of users to query, comma separated')
+    parser.add_argument('--short', action='store_true', help="Short output")
+    parser.add_argument('--shorter', action='store_true', help="Even shorter output")
     return parser.parse_args()
 
 def get_user_list(users: str) -> List[str]:
@@ -85,9 +87,24 @@ def get_user_list(users: str) -> List[str]:
 def main():
     parser = get_opts()
 
+    user_changes = {}
+    waiting_count = 0
+    waiting_sum = 0
+
     for user in get_user_list(parser.users):
-        print("Reviews waiting on %s" % user)
         changes = query_gerrit(parser, user)
+
+        waiting_count += 1
+        waiting_sum += len(changes)
+
+        if parser.shorter:
+            print("{} reviews waiting on {}".format(len(changes), user))
+            continue
+        elif parser.short:
+            print("{} reviews waiting on {} - {}".format(len(changes), user, prepare_clickable_url(parser, user)))
+            continue
+        else:
+            print("{} reviews waiting on {}".format(len(changes), user))
 
         for change in [c for c in changes if not review_not_needed(c)]:
             user_invite = [invite for invite in get_reviews(change) if invite['username'] == user][0]
@@ -116,6 +133,11 @@ def main():
                 waiting_message,
                 change['_number'],
                 parser.gerrit))
+
+    if parser.shorter:
+        print("Team average: {:.1f}".format(waiting_sum / waiting_count))
+        print(prepare_clickable_url(parser, 'self'))
+
 
 if __name__ == '__main__':
     main()
