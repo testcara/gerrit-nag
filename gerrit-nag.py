@@ -51,6 +51,9 @@ def prepare_clickable_url(parser, user):
         gerrit = parser.gerrit,
         query = prepare_gerrit_query(parser, user))
 
+def prepare_review_url(parser, change_number):
+    return "{}/{}".format(parser.gerrit, change_number)
+
 def query_gerrit(parser, user) -> bytes:
     """Return current outstanding gerrit changes owned by user"""
     response = requests.get(prepare_rest_url(parser, user))
@@ -134,11 +137,10 @@ def main():
                 else:
                     waiting_message = "(Last updated at least %d hours ago)" % (delta.seconds / 3600)
 
-            print(" - {}: {} {} {}".format(
+            print(" - {}: {} {}".format(
                 change['subject'],
                 waiting_message,
-                change['_number'],
-                parser.gerrit))
+                prepare_review_url(parser, change['_number'])))
 
     if parser.shorter:
         print("Team average: {:.1f}".format(waiting_sum / waiting_count))
