@@ -54,7 +54,15 @@ class NagBotProtocol(irc.IRCClient):
 
     def handle_direct_message(self, nick, message):
         print("Private message from {}: {}".format(nick, message))
-        pass
+
+        say_message = self.prefix_match_message('say', message)
+        if say_message:
+            # Send message to the channel
+            # (Note we're assuming just one channel here)
+            self.msg(self.factory.nagbot_opts.channel, say_message)
+            return
+
+        self.msg(nick, "Huh?")
 
     def handle_channel_request(self, nick, channel, message):
         print("Command from {} on {}: {}".format(nick, channel, message))
@@ -111,10 +119,9 @@ def get_client_factory(opts):
     NagBotProtocol.nickname = opts.nickname
     NagBotProtocol.realname = opts.realname
 
-    channel = opts.channel
-    if not channel.startswith('#'):
-        channel = '#{}'.format(channel)
-    NagBotFactory.channels = [channel]
+    if not opts.channel.startswith('#'):
+        opts.channel = '#{}'.format(opts.channel)
+    NagBotFactory.channels = [opts.channel]
 
     # So we can access them in our protocol methods
     NagBotFactory.nagbot_opts = opts
