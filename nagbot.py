@@ -42,12 +42,22 @@ class NagBotProtocol(irc.IRCClient):
             print("Joining {}".format(channel))
             self.join(channel)
 
+    # Given a prefix and message, if the message starts with
+    # the prefix then remove it and return the rest of the message.
+    # If the prefix is not found return None. Match the prefix with
+    # or without a ':' char.
+    def prefix_match_message(self, prefix, message):
+        pattern = r"^{}:? (.*)$".format(prefix)
+        if re.match(pattern, message):
+            return re.sub(pattern, '\\1', message)
+        return None
+
     def handle_direct_message(self, nick, message):
         print("Private message from {}: {}".format(nick, message))
         pass
 
-    def handle_channel_message(self, nick, channel, message):
-        print("Channel message from {} on {}: {}".format(nick, channel, message))
+    def handle_channel_request(self, nick, channel, message):
+        print("Command from {} on {}: {}".format(nick, channel, message))
 
         if re.match(r".*team report.*", message):
             self.msg(channel, "Team Report:")
@@ -59,24 +69,38 @@ class NagBotProtocol(irc.IRCClient):
                 self.factory.nagbot_opts.users,
                 "--shorter"]))
             self.msg(channel, "Please do some code reviews soon!")
+            return
 
-        elif re.match(r".*hello.*", message):
-            self.msg(channel, "Hi " + nick)
+        if re.match(r".*hello.*", message):
+            self.msg(channel, "Hello " + nick)
+            return
 
-        else:
-            self.msg(channel, "Huh?")
+        if re.match(r".*thanks.*", message):
+            self.msg(channel, "You're welcome " + nick)
+            return
+
+        self.msg(channel, "Huh?")
+
+    def handle_channel_message(self, nick, channel, message):
+        # Ignore for now
+        pass
 
     def privmsg(self, user, channel, message):
         nick, _, host = user.partition('!')
         message.strip()
 
         if channel == self.nickname:
-            # Direct message
+            # A direct message
             self.handle_direct_message(nick, message)
-
-        elif (message.startswith(self.nickname + ': ') or message.startswith(self.nickname + ' ')):
-            # In-channel ping
-            self.handle_channel_message(nick, channel, message)
+        else:
+            # An in-channel message
+            command = self.prefix_match_message(self.nickname, message)
+            if command:
+                # A message for our attention
+                self.handle_channel_request(nick, channel, command)
+            else:
+                # A general channel message
+                self.handle_channel_message(nick, channel, message)
 
 class NagBotFactory(protocol.ReconnectingClientFactory):
     protocol = NagBotProtocol
