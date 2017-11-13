@@ -47,7 +47,7 @@ class NagBotProtocol(irc.IRCClient):
     # If the prefix is not found return None. Match the prefix with
     # or without a ':' char.
     def prefix_match_message(self, prefix, message):
-        pattern = r"^{}:? (.*)$".format(prefix)
+        pattern = r"^(?:hey )?{}[:,]? (.*)$".format(prefix)
         if re.match(pattern, message):
             return re.sub(pattern, '\\1', message)
         return None
