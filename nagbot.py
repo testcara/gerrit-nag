@@ -101,8 +101,17 @@ class NagBotProtocol(irc.IRCClient):
         self.msg(channel, "Huh?")
 
     def handle_channel_message(self, nick, channel, message):
-        # Ignore for now
-        pass
+        if re.match(r".*thanks.*\s{}".format(self.nickname), message):
+            self.msg(channel, "You're welcome " + nick)
+            return
+
+        if re.match(r".*(hi|hello).*\s{}".format(self.nickname), message):
+            self.msg(channel, "Hi " + nick)
+            return
+
+        if re.match(r".*(bye|good-bye).*\s{}".format(self.nickname), message):
+            self.msg(channel, "Bye " + nick)
+            return
 
     def privmsg(self, user, channel, message):
         nick, _, host = user.partition('!')
