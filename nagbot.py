@@ -113,6 +113,11 @@ class NagBotProtocol(irc.IRCClient):
             self.msg(channel, "Bye " + nick)
             return
 
+        matches = re.match(r".*good (morning|afternoon|evening|night).*\s{}".format(self.nickname), message)
+        if matches:
+            self.msg(channel, "Good {} {}".format(matches.group(1), nick))
+            return
+
     def privmsg(self, user, channel, message):
         nick, _, host = user.partition('!')
         message.strip()
