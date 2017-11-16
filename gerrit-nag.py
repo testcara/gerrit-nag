@@ -87,6 +87,7 @@ def get_opts():
     parser.add_argument('users', type=str, help='List of users to query, comma separated')
     parser.add_argument('--short', action='store_true', help="Short output")
     parser.add_argument('--shorter', action='store_true', help="Even shorter output")
+    parser.add_argument('--shortest', action='store_true', help="Shortest output")
     parser.add_argument('--include-all', action='store_true', help="Don't exclude patch sets with two +1s or a +2")
     return parser.parse_args()
 
@@ -111,7 +112,9 @@ def main():
         waiting_count += 1
         waiting_sum += len(changes)
 
-        if parser.shorter:
+        if parser.shortest:
+            continue
+        elif parser.shorter:
             print("{} reviews waiting on {}".format(len(changes), user))
             continue
         elif parser.short:
@@ -147,7 +150,7 @@ def main():
                 waiting_message,
                 prepare_review_url(parser, change['_number'])))
 
-    if parser.shorter:
+    if parser.shorter or parser.shortest:
         print("Team average: {:.1f}".format(waiting_sum / waiting_count))
         print(prepare_clickable_url(parser, 'self'))
 

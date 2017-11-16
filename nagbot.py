@@ -79,6 +79,17 @@ class NagBotProtocol(irc.IRCClient):
             self.msg(channel, "Please do some code reviews soon!")
             return
 
+        if re.match(r".*team average.*", message):
+            self.msg(channel, subprocess.check_output([
+                "/usr/bin/python3",
+                "gerrit-nag.py",
+                self.factory.nagbot_opts.gerrit,
+                self.factory.nagbot_opts.project,
+                self.factory.nagbot_opts.users,
+                "--shortest"]))
+            self.msg(channel, "Code reviews are fun! Let's all do some code reviews!")
+            return
+
         matches = re.match(r".*how many.*\s(\w+)\??$", message)
         if matches:
             self.msg(channel, subprocess.check_output([
