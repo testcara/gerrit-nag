@@ -101,7 +101,7 @@ class NagBotProtocol(irc.IRCClient):
                 "--short"]))
             return
 
-        if re.match(r".*hello.*", message):
+        if re.match(r".*(hello|hi\b).*", message):
             self.msg(channel, "Hello " + nick)
             return
 
