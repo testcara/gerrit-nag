@@ -129,6 +129,9 @@ class NagBotProtocol(irc.IRCClient):
             self.msg(channel, "Good {} {}".format(matches.group(1), nick))
             return
 
+        if message == "mornings":
+            self.msg(channel, "mornings {}".format(nick))
+
     def privmsg(self, user, channel, message):
         nick, _, host = user.partition('!')
         message.strip()
