@@ -109,7 +109,7 @@ class NagBotProtocol(irc.IRCClient):
             self.msg(channel, "You're welcome " + nick)
             return
 
-        self.msg(channel, "Huh?")
+        self.msg(channel, subprocess.check_output(["/usr/bin/fortune", "-s"]))
 
     def handle_channel_message(self, nick, channel, message):
         if re.match(r".*thanks.*\s{}".format(self.nickname), message):
