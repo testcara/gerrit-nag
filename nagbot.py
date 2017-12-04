@@ -5,22 +5,6 @@
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
 #
-# Example usage:
-#
-#   ./nagbot.py \
-#     --host irc.example.com \
-#     --port 6667 \
-#     --channel foodev \
-#     --users finn,jake,marcy,pb,lsp \
-#     --gerrit https://gerrit.example.com \
-#     --project foo
-#
-# In IRC:
-#   <finn> nagbot: team report please
-#
-# Based on beerbot by Peter "Who-T" Hutterer
-# http://who-t.blogspot.com.au/
-#
 import sys
 import re
 import time

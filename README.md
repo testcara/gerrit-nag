@@ -1,12 +1,14 @@
-# Gerrit Nag Bot
+This project consists of two components, __[Gerrit Nag](#gerrit-nag)__ and
+__[Nagbot](#nagbot)__.
 
-A python script that queries Gerrit and shows a list of how many patch sets
+# Gerrit Nag
+
+A Python 3 script that queries Gerrit and shows a list of how many patch sets
 are waiting on reviews by each team member. If slow code reviews are a
 bottle-neck in your team, this list can help remind and encourage developers
 to do their reviews.
 
-You can share the output via email or IRC. The intention is for it to become
-an IRC bot, but this has not yet been implemented.
+The output is plain text which you can share via email or IRC.
 
 Based on an original script created by [@rohanpm](https://github.com/rohanpm).
 
@@ -47,4 +49,40 @@ $ ./gerrit-nag.py https://gerrit.example.com/ my-project sbaird,rjoost --shorter
 1 reviews waiting on rjoost
 Team average: 1.5
 https://gerrit.example.com/#/q/project:my-project+status:open+reviewer:self+-owner:self+-reviewedby:self+-label:Verified-1+-label:Code-Review-2+-label:Code-Review2
+
+$ ./gerrit-nag.py https://gerrit.example.com/ my-project sbaird,rjoost --shortest
+Team average: 1.5
+https://gerrit.example.com/#/q/project:my-project+status:open+reviewer:self+-owner:self+-reviewedby:self+-label:Verified-1+-label:Code-Review-2+-label:Code-Review2
+````
+
+# Nagbot
+
+Nagbot is an IRC bot written in Python 2 using Twisted. It can respond to
+requests to run Gerrit Nag on IRC and reply with the results.
+
+Nagbot responds to the following commands:
+
+````
+nagbot: team report
+nagbot: team average
+nagbot: how many reviews for sbaird?
+````
+
+It can do a few other things and will generally try to be polite and answer
+when spoken to.
+
+Nagbot is loosely based on, and inspired by 'beerbot', created by
+[@whot](https://github.com/whot), aka [Peter "Who-T"
+Hutterer](http://who-t.blogspot.com.au/).
+
+## Example Usage
+
+````
+$ ./nagbot.py \
+    --host irc.example.com \
+    --port 6667 \
+    --channel foodev \
+    --users finn,jake,marcy,pb,lsp \
+    --gerrit https://gerrit.example.com \
+    --project foo
 ````
