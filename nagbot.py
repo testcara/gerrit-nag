@@ -30,9 +30,26 @@ import yaml
 import subprocess
 import argparse
 
-from twisted.internet import reactor, protocol
+from twisted.internet import reactor, protocol, task
 from twisted.python import log
 from twisted.words.protocols import irc
+
+def minute_tick(nagbot, channel):
+    # Using local time for now
+    now = datetime.datetime.now()
+    date_str = now.strftime('%Y-%m-%d')
+    time_str = now.strftime('%H:%M')
+    dow_str = now.strftime('%a')
+
+    # TODO:
+    # - Configurable events
+    # - Happy birthdays?
+    # - Calendar integration?
+    if dow_str in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] and time_str == '10:13':
+        nagbot.msg(channel, "Standup time!")
+
+    if dow_str == 'Fri' and time_str == '16:49':
+        nagbot.msg(channel, "Have a good weekend everyone!")
 
 class NagBotProtocol(irc.IRCClient):
 
@@ -41,6 +58,7 @@ class NagBotProtocol(irc.IRCClient):
         for channel in self.factory.channels:
             print("Joining {}".format(channel))
             self.join(channel)
+            task.LoopingCall(minute_tick, self, channel).start(60.0)
 
     # Given a prefix and message, if the message starts with
     # the prefix then remove it and return the rest of the message.
@@ -158,6 +176,7 @@ def get_client_factory(opts):
     NagBotProtocol.nickname = opts.nickname
     NagBotProtocol.realname = opts.realname
 
+    # TODO: Allow multiple channels
     if not opts.channel.startswith('#'):
         opts.channel = '#{}'.format(opts.channel)
     NagBotFactory.channels = [opts.channel]
