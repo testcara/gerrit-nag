@@ -10,7 +10,6 @@ to do their reviews.
 
 The output is plain text which you can share via email or IRC.
 
-Based on an original script created by [@rohanpm](https://github.com/rohanpm).
 
 ## Usage
 
@@ -71,9 +70,6 @@ nagbot: how many reviews for sbaird?
 It can do a few other things and will generally try to be polite and answer
 when spoken to.
 
-Nagbot is loosely based on, and inspired by 'beerbot', created by
-[@whot](https://github.com/whot), aka [Peter "Who-T"
-Hutterer](http://who-t.blogspot.com.au/).
 
 ## Example Usage
 
@@ -86,3 +82,26 @@ $ ./nagbot.py \
     --gerrit https://gerrit.example.com \
     --project foo
 ````
+
+# To Do
+
+* Properly support running Nagbot on multiple channels
+* More useful features for Nagbot
+
+# License
+
+This project is licensed under the GPL v2. Please see
+[LICENSE.txt](LICENSE.txt) for details.
+
+# Authors
+
+* [Simon Baird](https://github.com/simonbaird)
+* [Róman Joost](https://github.com/romanofski)
+
+# Acknowledgments
+
+* Gerrit Nag is based on an original script created by
+    [Rohan McGovern](https://github.com/rohanpm).
+* Nagbot is loosely based on, and inspired by, 'beerbot',
+    created by [Peter "Who-T" Hutterer](https://github.com/whot).
+* [Red Hat](https://www.redhat.com/).
