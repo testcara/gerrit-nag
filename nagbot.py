@@ -131,8 +131,23 @@ class NagBotProtocol(irc.IRCClient):
             self.msg(channel, "Good {} {}".format(matches.group(1), nick))
             return
 
+        if re.match(r".*merry (xmas|christmas).*\s{}".format(self.nickname), message):
+            if datetime.datetime.now().strftime('%b') == "Dec":
+                self.msg(channel, "Merry Christmas " + nick + "!")
+            else:
+                self.msg(channel, "...okay sure " + nick)
+            return
+
+        if re.match(r".*happy holidays.*\s{}".format(self.nickname), message):
+            if datetime.datetime.now().strftime('%b') == "Dec":
+                self.msg(channel, "Happy Holidays " + nick + "!")
+            else:
+                self.msg(channel, "...okay sure " + nick)
+            return
+
         if message == "mornings":
             self.msg(channel, "mornings {}".format(nick))
+            return
 
     def privmsg(self, user, channel, message):
         nick, _, host = user.partition('!')
