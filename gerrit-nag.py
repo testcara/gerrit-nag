@@ -9,6 +9,7 @@ from typing import AnyStr, Iterable, List, TypeVar, Dict
 import argparse
 import requests
 import json
+import sys
 from datetime import datetime
 
 def prepare_gerrit_query(parser, user):
@@ -61,8 +62,18 @@ def prepare_review_url(parser, change_number):
 
 def query_gerrit(parser, user) -> bytes:
     """Return current outstanding gerrit changes owned by user"""
-    response = requests.get(prepare_rest_url(parser, user))
-    return json.loads(response.text.lstrip(")]}'"))
+    rest_url = prepare_rest_url(parser, user)
+    try:
+        response = requests.get(rest_url)
+        if response.status_code == 200:
+            return json.loads(response.text.lstrip(")]}'"))
+        else:
+            print("Got status {} from Gerrit".format(response.status_code))
+            return None
+    except Exception as e:
+        print("Got a {} from Gerrit".format(type(e).__name__))
+        return None
+
 
 def get_reviews(change):
     return change['labels']['Code-Review']['all']
@@ -103,6 +114,9 @@ def main():
 
     for user in get_user_list(parser.users):
         all_changes = query_gerrit(parser, user)
+        if all_changes is None:
+            print("Unable to query Gerrit")
+            sys.exit()
         if parser.include_all:
             user_changes[user] = all_changes
         else:
