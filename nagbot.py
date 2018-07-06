@@ -175,10 +175,12 @@ def get_client_factory(opts):
     NagBotProtocol.nickname = opts.nickname
     NagBotProtocol.realname = opts.realname
 
-    # TODO: Allow multiple channels
-    if not opts.channel.startswith('#'):
-        opts.channel = '#{}'.format(opts.channel)
-    NagBotFactory.channels = [opts.channel]
+    NagBotFactory.channels = []
+    channels_list = opts.channels.split(',')
+    for channel in channels_list:
+        if not channel.startswith('#'):
+            channel = '#{}'.format(channel)
+        NagBotFactory.channels.append(channel)
 
     # So we can access them in our protocol methods
     NagBotFactory.nagbot_opts = opts
@@ -189,7 +191,7 @@ def get_opts():
     p = argparse.ArgumentParser()
     p.add_argument('--host',     type=str,                          help='IRC host')
     p.add_argument('--port',     type=int, default=6667,            help='IRC port, default 6667')
-    p.add_argument('--channel',  type=str,                          help='IRC channel')
+    p.add_argument('--channels', type=str,                          help='IRC channels, comma separated')
     p.add_argument('--users',    type=str,                          help='Gerrit users to nag, comma separated')
     p.add_argument('--gerrit',   type=str,                          help='Gerrit URL')
     p.add_argument('--project',  type=str,                          help='Gerrit project')
