@@ -55,16 +55,22 @@ class NagBotProtocol(irc.IRCClient):
         return None
 
     def handle_direct_message(self, nick, message):
-        print("Private message from {}: {}".format(nick, message))
 
-        say_message = self.prefix_match_message('say', message)
-        if say_message:
-            # Send message to the channel
-            # (Note we're assuming just one channel here)
-            self.msg(self.factory.nagbot_opts.channel, say_message)
-            return
-
-        self.msg(nick, "Huh?")
+        # the message format is '[Ss]ay to #channle_name:message'
+        try:
+            channel_message_group = re.match(r'[Ss]ay to (#\w+):(.*?$)', message)
+            specific_channel = channel_message_group.group(1)
+            channel_message = channel_message_group.group(2)
+            print("Private message from {} to channel {}: {}".format(nick, specific_channel, channel_message))
+            for channel in self.factory.channels:
+                if channel == specific_channel:
+                    self.msg(channel, channel_message)
+                    return
+                else:
+                    print("Ignoring the message for the channel, {}".format(channel))
+        except:
+            print("Failed to send private message to specific channel, please check the original message {}", message)
+            self.msg(nick, "Huh?")
 
     def handle_channel_request(self, nick, channel, message):
         print("Command from {} on {}: {}".format(nick, channel, message))
@@ -175,10 +181,12 @@ def get_client_factory(opts):
     NagBotProtocol.nickname = opts.nickname
     NagBotProtocol.realname = opts.realname
 
-    # TODO: Allow multiple channels
-    if not opts.channel.startswith('#'):
-        opts.channel = '#{}'.format(opts.channel)
-    NagBotFactory.channels = [opts.channel]
+    NagBotFactory.channels = []
+    channels_list = opts.channels.split(',')
+    for channel in channels_list:
+        if not channel.startswith('#'):
+            channel = '#{}'.format(channel)
+        NagBotFactory.channels.append(channel)
 
     # So we can access them in our protocol methods
     NagBotFactory.nagbot_opts = opts
@@ -189,7 +197,7 @@ def get_opts():
     p = argparse.ArgumentParser()
     p.add_argument('--host',     type=str,                          help='IRC host')
     p.add_argument('--port',     type=int, default=6667,            help='IRC port, default 6667')
-    p.add_argument('--channel',  type=str,                          help='IRC channel')
+    p.add_argument('--channels', type=str,                          help='IRC channels, comma separated')
     p.add_argument('--users',    type=str,                          help='Gerrit users to nag, comma separated')
     p.add_argument('--gerrit',   type=str,                          help='Gerrit URL')
     p.add_argument('--project',  type=str,                          help='Gerrit project')
